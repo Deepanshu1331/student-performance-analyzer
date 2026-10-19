@@ -1,25 +1,22 @@
-def displayChoices(choices, heading = None):
-  if heading:
-    print(headingFormatter(heading))
+from modules import helperFunctions as hf
+
+def displayChoices(choices):
   count = 1
   for choice in choices:
     print(str(count) + ". " + choice)
     count += 1
-  return [str(i) for i in range(1, count)]
+  return {i:choices[i - 1] for i in range(1, count)}
 
 def handleChoiceSelection(valid_choices):
   while(True):
-    user_choice = input("Enter your choice: ")
+    user_choice = hf.takeIntInput("Enter your choice: ")
     if user_choice in valid_choices:
       return user_choice
 
-def headingFormatter(text):
-  padding = 20
-  return f"\n{'=' * padding} {text} {'=' * padding}\n"
-
 
 # Testing the module
-if (__name__ == "__main__"):
-  valid_choices = displayChoices(["Display record", "Do whatever we want", "Beat everyone up"], "MAIN MENU")
+# Run modules as python -m modules.choicesManager so that imports resolve correctly
+if __name__ == "__main__":
+  valid_choices = displayChoices(["Display record", "Do whatever we want", "Beat everyone up"])
   user_choice = handleChoiceSelection(valid_choices)
   print(f"You chose: {user_choice}")
