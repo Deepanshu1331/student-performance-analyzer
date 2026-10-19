@@ -1,7 +1,7 @@
-def headingFormatter(text):
+def headingFormatter(text, symbol="="):
   padded_length = 80
   padding_each_side = (padded_length - len(text)) // 2
-  return f"\n{'=' * padding_each_side} {text} {'=' * padding_each_side}\n"
+  return f"\n{symbol * padding_each_side} {text} {symbol * padding_each_side}\n"
 
 def takeIntInput(text):
   while True:
@@ -10,3 +10,6 @@ def takeIntInput(text):
       return int(user_input)
     except ValueError:
       pass
+
+def waitEnter():
+  input("\nPress enter to go back to main menu: ")

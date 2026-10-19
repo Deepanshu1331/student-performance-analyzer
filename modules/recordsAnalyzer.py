@@ -20,7 +20,6 @@ def assignGrade(percentage_df):
   return grade_arr
 
 def checkPass(subjects_df, subjects, passing_marks):
-  result_arr = None
   for subject in subjects:
     result_arr = np.where(subjects_df[subject] > passing_marks, "pass", "fail")
   return result_arr
