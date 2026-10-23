@@ -1,7 +1,7 @@
 import pandas as pd
 import sys
 
-from modules import choicesManager as cm, helperFunctions as hf, recordsAnalyzer as ra
+from modules import choicesManager as cm, helperFunctions as hf, recordsAnalyzer as ra, dataCleaner as dc
 
 
 if len(sys.argv) == 1:
@@ -11,18 +11,35 @@ if len(sys.argv) == 1:
 try:
   students_df = pd.read_csv(sys.argv[1], index_col="roll_no")
 except FileNotFoundError:
-  print("File not found. Make sure file path is correct.")
+  print("\nFile not found. Make sure file path is correct.\n")
   sys.exit(2)
+except ValueError:
+  print("\nFile is missing column 'roll_no'")
+  print("Make sure file has correct format: roll_no, name, attendance, <subjects>\n")
+  sys.exit(3)
 
+# Assuming csv file columns to be roll_no, name, attendance then subjects. Start from 2 cause roll_no is index
+subjects = students_df.columns.to_list()[2:]
 # Change roll no data type to object since roll no can be string also and to allow us to compare to it using string
 students_df.index = students_df.index.astype(str)
+# Validate and clean the file, data
+dc.validateFormat(students_df, subjects)
+
 print(hf.headingFormatter("INITIAL SETUP", "-"))
 print("Successfully loaded the csv file.\n")
-max_subject_marks = hf.takeIntInput("Enter maximum marks of a subject: ")
-passing_marks = hf.takeIntInput("Enter passing marks of a subject: ")
-no_of_lectures = hf.takeIntInput("Enter number of lectures held (for attendance): ")
-# Assuming csv file columns to be roll_no, name, attendance then subjects. Start from 2 cause roll_no is index
-subjects = students_df.columns.to_list()[2:]  
+while True:
+  max_subject_marks = hf.takeFloatInput("Enter maximum marks of a subject: ")
+  passing_marks = hf.takeFloatInput("Enter passing marks of a subject: ")
+  no_of_lectures = hf.takeIntInput("Enter number of lectures held (for attendance): ")
+  if (no_of_lectures <= 0 or max_subject_marks <= 0):
+    print("\nInvalid value. Values must be greater than zero\n")
+    continue
+  if (max_subject_marks < passing_marks):
+    print("\nPassing marks cannot be greater than maximum subject marks\n")
+    continue
+  break
+# Validate the attendance, marks
+dc.validateDataRange(students_df, subjects, max_subject_marks, no_of_lectures)
 
 analyzed_df = ra.analyzeStudents(students_df, subjects, max_subject_marks, passing_marks, no_of_lectures)
 
@@ -57,7 +74,7 @@ while True:
     case "View an inidividual student report":
       print(hf.headingFormatter("STUDENT REPORT"))
       while True:
-        input_roll_no = input("Enter student roll no: ")
+        input_roll_no = input("Enter student roll no: ").strip()
         if input_roll_no in students_df.index:
           break
         else:
@@ -88,7 +105,7 @@ Pass Percentage: {class_analysis["pass_percentage"]}%""")
 
     case "View subject-wise analysis":
       print(hf.headingFormatter("SUBJECT-WISE PERFORMANCE"))
-      print(ra.analyzeSubjects(students_df, subjects).to_string())
+      print(ra.analyzeSubjects(students_df, subjects, passing_marks).to_string())
       hf.waitEnter()
 
     case "View student ranking":

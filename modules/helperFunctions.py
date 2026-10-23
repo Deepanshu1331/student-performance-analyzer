@@ -11,5 +11,13 @@ def takeIntInput(text):
     except ValueError:
       pass
 
+def takeFloatInput(text):
+  while True:
+    user_input = input(text)
+    try:
+      return float(user_input)
+    except ValueError:
+      pass
+
 def waitEnter():
   input("\nPress enter to go back to main menu: ")

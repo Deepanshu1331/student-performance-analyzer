@@ -7,7 +7,7 @@ def analyzeStudents(df, subjects, max_subject_marks, passing_marks, no_of_lectur
   analysis_df["total"] = df[subjects].sum(axis = 1)
   analysis_df["percentage"] = analysis_df["total"] / (max_subject_marks * len(subjects)) * 100
   analysis_df["grade"] = assignGrade(analysis_df["percentage"])
-  analysis_df["result"] = checkPass(df[subjects], subjects, passing_marks)
+  analysis_df["result"] = checkPass(df[subjects], passing_marks)
   analysis_df["attendance"] = df["attendance"] / no_of_lectures * 100
   return analysis_df
 
@@ -19,11 +19,9 @@ def assignGrade(percentage_df):
   grade_arr = np.select(score_condn, grades, default='F')
   return grade_arr
 
-def checkPass(subjects_df, subjects, passing_marks):
-  for subject in subjects:
-    result_arr = np.where(subjects_df[subject] > passing_marks, "pass", "fail")
+def checkPass(subjects_df, passing_marks):
+  result_arr = np.where((subjects_df < passing_marks).any(axis=1), "fail", "pass")
   return result_arr
-
 
 def analyzeClass(analyzed_df):
   class_analysis = {}
@@ -36,10 +34,13 @@ def analyzeClass(analyzed_df):
   class_analysis["pass_percentage"] = (class_analysis["no_of_passed"] / class_analysis["total_students"]) * 100
   return class_analysis
 
-def analyzeSubjects(df, subjects):
+def analyzeSubjects(df, subjects, passing_marks):
   subject_analysis_df = pd.DataFrame(columns=["average", "highest", "lowest"])
   for subject in subjects:
-    subject_df = pd.DataFrame([{"average": df[subject].mean(), "highest": df[subject].max(), "lowest": df[subject].min()}], 
+    no_of_passed = df[df[subject] >= passing_marks]["name"].count()
+    no_of_failed = df["name"].count() - no_of_passed
+    subject_df = pd.DataFrame([{"average": df[subject].mean(), "highest": df[subject].max(), "lowest": df[subject].min(),
+                                "passed": no_of_passed, "failed": no_of_failed}], 
                               index=[subject])
     subject_analysis_df = pd.concat([subject_analysis_df, subject_df])
   return subject_analysis_df
