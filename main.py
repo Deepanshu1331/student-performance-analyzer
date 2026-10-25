@@ -9,15 +9,13 @@ if len(sys.argv) == 1:
   sys.exit(1)
 
 try:
-  students_df = pd.read_csv(sys.argv[1], index_col="roll_no")
+  students_df = pd.read_csv(sys.argv[1])
 except FileNotFoundError:
   print("\nFile not found. Make sure file path is correct.\n")
   sys.exit(2)
-except ValueError:
-  print("\nFile is missing column 'roll_no'")
-  print("Make sure file has correct format: roll_no, name, attendance, <subjects>\n")
-  sys.exit(3)
 
+students_df = dc.cleanColumnNames(students_df)
+students_df = students_df.set_index("roll_no")
 # Assuming csv file columns to be roll_no, name, attendance then subjects. Start from 2 cause roll_no is index
 subjects = students_df.columns.to_list()[2:]
 # Change roll no data type to object since roll no can be string also and to allow us to compare to it using string
@@ -94,7 +92,7 @@ while True:
       class_analysis = ra.analyzeClass(analyzed_df)
       print(hf.headingFormatter("CLASS PERFORMANCE SUMMARY"))
       print(f"""Total students: {class_analysis["total_students"]}
-Class average: {class_analysis["avg_percentage"]}%
+Average Class Percentage: {class_analysis["avg_percentage"]}%
 Highest Student Percentage: {class_analysis["highest_percentage"]}%
 Lowest Student Percentage: {class_analysis["lowest_percentage"]}%
 
