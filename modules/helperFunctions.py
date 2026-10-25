@@ -9,7 +9,7 @@ def takeIntInput(text):
     try:
       return int(user_input)
     except ValueError:
-      pass
+      print("Invalid. Enter a valid number.")
 
 def takeFloatInput(text):
   while True:
@@ -17,7 +17,7 @@ def takeFloatInput(text):
     try:
       return float(user_input)
     except ValueError:
-      pass
+      print("Invalid. Enter a valid number.")
 
 def waitEnter():
   input("\nPress enter to go back to main menu: ")

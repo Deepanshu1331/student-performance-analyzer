@@ -12,6 +12,8 @@ def handleChoiceSelection(valid_choices):
     user_choice = hf.takeIntInput("Enter your choice: ")
     if user_choice in valid_choices:
       return user_choice
+    else:
+      print("Invalid choice. Try again.")
 
 
 # Testing the module

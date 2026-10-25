@@ -13,24 +13,26 @@ try:
 except FileNotFoundError:
   print("\nFile not found. Make sure file path is correct.\n")
   sys.exit(2)
+except pd.errors.EmptyDataError:
+  print("\nEmpty file. Nothing to do.\n")
+  sys.exit(2)
 
 students_df = dc.cleanColumnNames(students_df)
 students_df = students_df.set_index("roll_no")
-# Assuming csv file columns to be roll_no, name, attendance then subjects. Start from 2 cause roll_no is index
-subjects = students_df.columns.to_list()[2:]
+# roll_no is used as index. Everything else except name and attendance is treated as a subject.
+subjects = [column for column in students_df.columns if column not in ["name", "attendance", "department"]]
 # Change roll no data type to object since roll no can be string also and to allow us to compare to it using string
-students_df.index = students_df.index.astype(str)
+students_df.index = students_df.index.astype("string")
 # Validate and clean the file, data
 dc.validateFormat(students_df, subjects)
 
 print(hf.headingFormatter("INITIAL SETUP", "-"))
-print("Successfully loaded the csv file.\n")
 while True:
   max_subject_marks = hf.takeFloatInput("Enter maximum marks of a subject: ")
   passing_marks = hf.takeFloatInput("Enter passing marks of a subject: ")
   no_of_lectures = hf.takeIntInput("Enter number of lectures held (for attendance): ")
-  if (no_of_lectures <= 0 or max_subject_marks <= 0):
-    print("\nInvalid value. Values must be greater than zero\n")
+  if (no_of_lectures <= 0 or max_subject_marks <= 0 or passing_marks < 0):
+    print("\nInvalid value. Values cannot be negative.\n")
     continue
   if (max_subject_marks < passing_marks):
     print("\nPassing marks cannot be greater than maximum subject marks\n")
@@ -39,17 +41,20 @@ while True:
 # Validate the attendance, marks
 dc.validateDataRange(students_df, subjects, max_subject_marks, no_of_lectures)
 
+print(f"\nSuccessfully loaded the csv file. {students_df['name'].count()} records loaded.")
+
 analyzed_df = ra.analyzeStudents(students_df, subjects, max_subject_marks, passing_marks, no_of_lectures)
+subject_analysis_df = ra.analyzeSubjects(students_df, subjects, passing_marks)
 
 while True:
   print(hf.headingFormatter("MAIN MENU", "-"))
   valid_choices = cm.displayChoices([
     "View all student records",
     "View analyzed student records",
-    "View an inidividual student report",
+    "View an individual student report",
     "View class performance summary",
     "View subject-wise analysis",
-    "View student ranking"
+    "View top performers"
   ])
   print("0. Exit\n")
   valid_choices[0] = "Exit"
@@ -69,7 +74,7 @@ while True:
       print(analyzed_df.to_string())
       hf.waitEnter()
 
-    case "View an inidividual student report":
+    case "View an individual student report":
       print(hf.headingFormatter("STUDENT REPORT"))
       while True:
         input_roll_no = input("Enter student roll no: ").strip()
@@ -78,8 +83,9 @@ while True:
         else:
           print("Invalid roll no. Try again.\n")
       print('_' * 30)
-      print(f"roll_no    {input_roll_no}")
-      print(students_df.loc[input_roll_no, ["name"]].to_string())
+      print(f"roll_no        {input_roll_no}")
+      cols = ["name"] + (["department"] if "department" in students_df.columns else [])
+      print(students_df.loc[input_roll_no, cols].to_string())
       print()
       print("Subject Marks")
       print(students_df.loc[input_roll_no, subjects].to_string())
@@ -103,10 +109,12 @@ Pass Percentage: {class_analysis["pass_percentage"]}%""")
 
     case "View subject-wise analysis":
       print(hf.headingFormatter("SUBJECT-WISE PERFORMANCE"))
-      print(ra.analyzeSubjects(students_df, subjects, passing_marks).to_string())
+      print(subject_analysis_df.to_string())
+      print(f"\nSubject with highest average: {subject_analysis_df['average'].idxmax()}")
+      print(f"Subject with lowest average: {subject_analysis_df['average'].idxmin()}")
       hf.waitEnter()
 
-    case "View student ranking":
-      print(hf.headingFormatter("STUDENT RANKING"))
-      print(analyzed_df[["name", "percentage"]].sort_values(by=["percentage"], ascending=False).to_string())
+    case "View top performers":
+      print(hf.headingFormatter("TOP PERFORMERS"))
+      print(analyzed_df[["name", "percentage"]].sort_values(by=["percentage"], ascending=False).head(10).to_string())
       hf.waitEnter()

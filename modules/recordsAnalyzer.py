@@ -35,7 +35,7 @@ def analyzeClass(analyzed_df):
   return class_analysis
 
 def analyzeSubjects(df, subjects, passing_marks):
-  subject_analysis_df = pd.DataFrame(columns=["average", "highest", "lowest"])
+  subject_analysis_df = pd.DataFrame(columns=["average", "highest", "lowest", "passed", "failed"])
   for subject in subjects:
     no_of_passed = df[df[subject] >= passing_marks]["name"].count()
     no_of_failed = df["name"].count() - no_of_passed
@@ -48,9 +48,9 @@ def analyzeSubjects(df, subjects, passing_marks):
 if __name__ == "__main__":
   df = pd.read_csv("./students-sample.csv", index_col="roll_no")
   print(df)
-  subjects = df.columns.to_list()[2:]
+  subjects = [column for column in df.columns if column not in ["name", "attendance"]]
   analyzed_df = analyzeStudents(df, subjects, 100, 40, 100)
   print(analyzed_df)
   class_analysis = analyzeClass(analyzed_df)
   print(class_analysis.items())
-  print(analyzeSubjects(df, subjects))
+  print(analyzeSubjects(df, subjects, 40))

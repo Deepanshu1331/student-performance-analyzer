@@ -8,7 +8,7 @@ def cleanColumnNames(df):
                                   "rollno": "roll_no", "rollnumber": "roll_no"})
   if "roll_no" not in cleaned_df.columns.to_list():
     print("\nInvalid format. Missing column 'roll_no'")
-    print("Make sure file has correct format: roll_no, name, attendance, <subjects>\n")
+    print("Make sure file has correct format: roll_no, name, attendance, department, <subjects>\n")
     sys.exit(3)
   return cleaned_df
 
@@ -20,7 +20,7 @@ def validateFormat(df, subjects):
   for column in column_to_check:
     if column not in columns:
       print(f"\nInvalid format. Missing column '{column}'")
-      print("Make sure file has correct format: roll_no, name, attendance, <subjects>\n")
+      print("Make sure file has correct format: roll_no, name, attendance, department, <subjects>\n")
       sys.exit(3)
   # Trim whitespace from roll_no, name
     df.index = df.index.str.strip()
@@ -43,13 +43,13 @@ def validateFormat(df, subjects):
   # Check if there is atleast one subject column
   if len(subjects) == 0:
     print("\nInvalid format. Should have atleast one subject column")
-    print("Make sure file has correct format: roll_no, name, attendance, <subjects>\n")
+    print("Make sure file has correct format: roll_no, name, attendance, department, <subjects>\n")
     sys.exit(3)
 
   # Check for null values
   null_rows_df = df[df.isna().any(axis=1)]
   if null_rows_df["name"].count() != 0:
-    null_rows_df = null_rows_df.astype(str)
+    null_rows_df = null_rows_df.astype("string")
     null_rows_df.fillna("empty", inplace=True)
     print("\nInvalid data. Following rows have empty values:\n")
     print(null_rows_df.to_string())
@@ -82,7 +82,8 @@ def validateDataRange(df, subjects, max_subject_marks, no_of_lectures):
 
 if __name__ == "__main__":
   students_df = pd.read_csv("sample-invalid-csv/duplicate-data.csv", index_col="roll_no")
-  students_df.index = students_df.index.astype(str)
-  validateFormat(students_df)
-  validateDataRange(students_df, 100, 100)
+  students_df.index = students_df.index.astype("string")
+  subjects = [column for column in students_df.columns if column not in ["name", "attendance"]]
+  validateFormat(students_df, subjects)
+  validateDataRange(students_df, subjects, 100, 100)
   print(students_df)
